@@ -82,8 +82,9 @@ def setPositionFCoordDH():
     for i in range(5): #Go to each set of coordinates, 5 times
         print("Starting sequence iteration ", i+1)
         for j in range(len(coord)): # Length of the coord and angle shall be the same
-            # Get the coordinates in the method of applying forward kinematic and rx, ry, rz are 0
-            coordinatesDHGenerate = applyForWardKinematic(angle[j]) + [0, 0, 0]
+            # Get the coordinates in the method of applying forward kinematic and rx, ry, rz are the same value that's captured
+            coordinatesDHGenerate = applyForWardKinematic(angle[j]) + [coord[j][3], coord[j][4], coord[j][5]]
+            print(coordinatesDHGenerate)
             # Send Coord to bot
             mycobot.send_coords(coordinatesDHGenerate,30)
             sleep(5)
@@ -92,3 +93,5 @@ def setPositionFCoordDH():
             sleep(3)
 
     mycobot.power_off()
+
+# setPositionFCoordDH() #Uncomment this to test computed coordinates...If you were running this function make sure the other file did not intended to call and run other function

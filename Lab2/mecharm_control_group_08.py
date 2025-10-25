@@ -116,5 +116,5 @@ def setPositionFCoord():
     mycobot.power_off()
 
 #setPositionFAngles() #Uncomment this to test joint angles
-setPositionFCoord() #Uncomment this to test coordinates
+#setPositionFCoord() #Uncomment this to test coordinates
 #Read10Position() #Uncomment this to drag teach
