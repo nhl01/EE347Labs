@@ -55,3 +55,4 @@ def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     roll, pitch, yaw = -1, -1, -1 # should be np.arctan2(), np.arctan2(), np.arctan2() # TODO: Need to figure out which elements out of T_values to use
     return [roll - rx_d, pitch - ry_d, yaw - rz_d]
     
+print(forward_kinematics_func(0, 0, 0, 0, 0,0))
