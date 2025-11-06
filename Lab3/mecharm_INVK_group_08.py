@@ -60,8 +60,8 @@ def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     
 print(forward_kinematics_func(0, 0, 0, 0, 0, 0))
 
-def inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init, link_lengths, max_iterations=100, tolerance=1e-6):
-    position_args = (x_target, y_target, z_target, link_lengths)
+def inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init, max_iterations=100, tolerance=1e-6):
+    position_args = (x_target, y_target, z_target)
     q_position_solution = least_squares(position_error(q_init, x_target, y_target, z_target), q_init[:3], args=position_args, method='lm', max_nfev=max_iterations, ftol=tolerance).x
 
     orientation_args = (rx_d, ry_d, rz_d)
