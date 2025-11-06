@@ -52,7 +52,10 @@ def position_error(q_position, x_target, y_target, z_target):
 
 def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     T_values = forward_kinematics_func(0, 0, 0, q_orientation[4], q_orientation[5], q_orientation[6])
-    roll, pitch, yaw = -1, -1, -1 # should be np.arctan2(), np.arctan2(), np.arctan2() # TODO: Need to figure out which elements out of T_values to use
+    # Extract X, Y, Z values
+    X, Y, Z = T_values[:3, 3]
+    roll, pitch, yaw = np.arctan2(Z,Y), np.arctan2(-X,np.sqrt(Y*Y+Z*Z)), np.arctan2(Y,X) # should be np.arctan2(), np.arctan2(), np.arctan2() # TODO: Need to figure out which elements out of T_values to use
+    
     return [roll - rx_d, pitch - ry_d, yaw - rz_d]
     
-print(forward_kinematics_func(0, 0, 0, 0, 0,0))
+print(forward_kinematics_func(0, 0, 0, 0, 0, 0))
