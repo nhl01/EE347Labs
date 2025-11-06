@@ -5,7 +5,7 @@ from scipy.optimize import least_squares
 # Declare symbols
 q1,q2,q3,q4,q5,q6 = symbols('q1 q2 q3 q4 q5 q6')
 
-# Define the offset parameters. Complete the values
+# Define the offset parameters
 offsets = [0, 0, 0, 0, 0, 0]
 
 # Declare the DH Table
@@ -54,8 +54,17 @@ def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     T_values = forward_kinematics_func(0, 0, 0, q_orientation[4], q_orientation[5], q_orientation[6])
     # Extract X, Y, Z values
     X, Y, Z = T_values[:3, 3]
-    roll, pitch, yaw = np.arctan2(Z,Y), np.arctan2(-X,np.sqrt(Y*Y+Z*Z)), np.arctan2(Y,X) # should be np.arctan2(), np.arctan2(), np.arctan2() # TODO: Need to figure out which elements out of T_values to use
+    roll, pitch, yaw = np.arctan2(Z,Y), np.arctan2(-X,np.sqrt(Y*Y+Z*Z)), np.arctan2(Y,X)
     
     return [roll - rx_d, pitch - ry_d, yaw - rz_d]
     
 print(forward_kinematics_func(0, 0, 0, 0, 0, 0))
+
+def inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init, link_lengths, max_iterations=100, tolerance=1e-6):
+    position_args = (x_target, y_target, z_target, link_lengths)
+    q_position_solution = least_squares(position_error(q_init, x_target, y_target, z_target), q_init[:3], args=position_args, method='lm', max_nfev=max_iterations, ftol=tolerance).x
+
+    orientation_args = (rx_d, ry_d, rz_d)
+    q_orientation_solution = least_squares(orientation_error, q_init[3:], args=orientation_args, method='lm', max_nfev=max_iterations, ftol=tolerance).x
+
+    return np.concatenate(q_position_solution, q_orientation_solution)
