@@ -13,7 +13,6 @@ import mecharm_control_group_08
 # Compute the end-effector pose of the robot with DH table and specific set of joint angles
 # input where a list of angle and output x, y, z
 def applyForWardKinematic(theta):
-
     # Declare Variable
     q1,q2,q3,q4,q5,q6 = symbols('q1 q2 q3 q4 q5 q6')
 
@@ -95,3 +94,11 @@ def setPositionFCoordDH():
     mycobot.power_off()
 
 # setPositionFCoordDH() #Uncomment this to test computed coordinates...If you were running this function make sure the other file did not intended to call and run other function
+
+angle,coord = mecharm_control_group_08.readCSV()
+print("Recorded Coordinate: ")
+for i in coord:
+    print(i)
+print("Computed Coordinate: ")
+for i in angle:
+    print(applyForWardKinematic(i))
