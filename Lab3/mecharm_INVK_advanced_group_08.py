@@ -64,13 +64,13 @@ def target_pose_error(joint_angles, *args):
    # Convert translation matrix to pose vector
    current_pose = transf_to_pose(current_fk)
 
-   error = current_pose-target_pose
+   error = np.array(current_pose) - np.array(target_pose)
    return error
 
 # Looks for a solution to inverse kinematics for a target pose and returns a transformation matrix
-def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=180):
+def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=(-180, 180)):
 
-   result = least_squares(target_pose_error, init_pose, args=(target_pose), method='trf', max_nfev=max_iter, ftol=tolerance, bounds=bounds)
+   result = least_squares(target_pose_error, init_pose, args=(target_pose,), method='trf', max_nfev=max_iter, ftol=tolerance, bounds=bounds)
 
    if result.success:
        print(f"Inverse kinematics converged after {result.nfev} function evaluations.")
@@ -119,7 +119,7 @@ def test_with_recorded_coords():
         ry_d = np.radians(coords[i][4])  # Pitch angle (in radians)
         rz_d = np.radians(coords[i][5])  # Yaw angle (in radians)
         q_init = angles[i]
-        joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d,), transf_to_pose(symbolic_forward_kinematics(q_init)))
+        joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
         calculated_coords = symbolic_forward_kinematics(joint_angles)
         end_effector_position = calculated_coords[:3, 3]
 
