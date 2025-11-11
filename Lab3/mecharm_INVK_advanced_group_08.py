@@ -1,6 +1,7 @@
 import numpy as np
 from sympy  import symbols, cos, sin, atan2, pi, Matrix, lambdify 
 from scipy.optimize import least_squares
+import csv
 
 # Declare symbols
 q1,q2,q3,q4,q5,q6 = symbols('q1 q2 q3 q4 q5 q6')
@@ -72,8 +73,58 @@ def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=180):
    result = least_squares(target_pose_error, init_pose, args=(target_pose), method='trf', max_nfev=max_iter, ftol=tolerance, bounds=bounds)
 
    if result.success:
-       # print(f"Inverse kinematics converged after {result.nfev} function evaluations.")
+       print(f"Inverse kinematics converged after {result.nfev} function evaluations.")
        return result.x
    else:
        print("Inverse kinematics did not converge.")
        return None
+   
+def readCSV():
+    # Load Data
+    filename = "../Lab2/data.csv"
+    angles = []
+    coord = []
+
+    with open(filename, mode="r") as f:
+        reader = csv.reader(f)         
+        i = 0
+        #The csv read comes in this format: ['[11.42', ' 119.35', ' 166.72', ' 133.94', ' -81.56', ' -62.84]']
+        for row in reader:
+            #Remove [ and ] from first index string and last one
+            print()
+            row[0] = row[0].replace('[', '')
+            row[-1] = row[-1].replace(']', '')
+            #Conver String to float
+            temp = []
+            for col in row:
+                temp.append(float(col))
+
+            #even Line of the csv is angle and odd is coord here, because i is 0-based
+            if (i % 2 == 0):
+                angles.append(temp)
+            else:
+                coord.append(temp)
+            i+=1
+    return angles, coord 
+
+def test_with_recorded_coords():
+    print("READING CSV")
+    angles, coords = readCSV()
+    print("PERFORMING INVERSE KINEMATICS")
+    for i in range(len(angles)):
+        x_target = coords[i][0]
+        y_target = coords[i][1]
+        z_target = coords[i][2]
+        rx_d = np.radians(coords[i][3])  # Roll angle (in radians)
+        ry_d = np.radians(coords[i][4])  # Pitch angle (in radians)
+        rz_d = np.radians(coords[i][5])  # Yaw angle (in radians)
+        q_init = angles[i]
+        joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d,), transf_to_pose(symbolic_forward_kinematics(q_init)))
+        calculated_coords = symbolic_forward_kinematics(joint_angles)
+        end_effector_position = calculated_coords[:3, 3]
+
+        print("Coor:")
+        for j in range(len(end_effector_position)):
+            print("c" + str(j) + ": " + str(end_effector_position[j]))
+
+test_with_recorded_coords()
