@@ -35,14 +35,17 @@ for i in range(1, len(D_H_Table)):
 # Define symbolic joint variables for differentiation
 q_sym = symbols('q1:7')
 
+# With forward kinemetics, we're getting the coordinates with given angles values.... return the coordinates of end effector
 def symbolic_forward_kinematics(q_values):
     # Map the joint angles and offsets into the transformation matrix
     subs_dict = {q:offset + angle for q, offset, angle in zip([q1, q2, q3, q4, q5, q6], offsets, q_values)}
     T_symbolic = T06.subs(subs_dict)
     return T_symbolic
 
+# Turn to numpy function
 forward_kinematics_func = lambdify(q_sym, symbolic_forward_kinematics(q_sym), 'numpy')
 
+# Get the forward kinematic error for the x y z between forward kinematics with the desired target
 def position_error(q_position, x_target, y_target, z_target):
     # Forward kinematics for first 3 links
     T_values = forward_kinematics_func(q_position[0], q_position[1], q_position[2], 0, 0, 0)
@@ -51,6 +54,7 @@ def position_error(q_position, x_target, y_target, z_target):
     # Return the extracted minus target positions
     return [X-x_target, Y-y_target, Z-z_target]
 
+# Get the orientation error like roll, pitch and taw between the forward kinematic with desired target
 def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     T_values = forward_kinematics_func(0, 0, 0, q_orientation[0], q_orientation[1], q_orientation[2])
     # Extract X, Y, Z values
@@ -59,6 +63,7 @@ def orientation_error(q_orientation, rx_d, ry_d, rz_d):
     
     return [roll - rx_d, pitch - ry_d, yaw - rz_d]
     
+# Solving for 6 angles of the robot with given coordinates of the end-effector...
 def inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init, max_iterations=100, tolerance=1e-6):
     position_args = (x_target, y_target, z_target)
     q_position_solution = least_squares(position_error, q_init[:3], args=position_args, method='lm', max_nfev=max_iterations, ftol=tolerance).x
@@ -68,6 +73,7 @@ def inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init, m
 
     return np.concatenate((q_position_solution, q_orientation_solution))
 
+# Reading the file and return the recorded angles and coordinates. Again, even line of the data.csv is angles and odd is the coordinates
 def readCSV():
     # Load Data
     filename = "../Lab2/data.csv"
@@ -98,9 +104,11 @@ def readCSV():
 
 # This function will throw the coordinates into the reverse kinmatics and get the angles; next throw that angles in forward kinematics to get the coordinates to compare with our actual
 def testingWithRecordedCoor():
+    # Get angles and coordinates from the csv file
     angles, coor= readCSV()
     
     for i in range(len(angles)):
+        # Define the x y z and roll pitch yaw from each line of coordinates.... also get the 6 angles of robot
         x_target = coor[i][0]
         y_target = coor[i][1]
         z_target = coor[i][2]
@@ -108,18 +116,20 @@ def testingWithRecordedCoor():
         ry_d = np.radians(coor[i][4])  # Pitch angle (in radians)
         rz_d = np.radians(coor[i][5])  # Yaw angle (in radians)
         q_init = angles[i]
+
         # Apply inverse kinematics with given coordinates
         joint_angles = inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init)
         # Apply forward kinematics with computed angles
         cal_coor = symbolic_forward_kinematics(joint_angles)
         end_effector_position = cal_coor[:3, 3]
 
+        # Print out the computed coordinates
         print("Coor:")
         for j in range(len(end_effector_position)):
             print("c" + str(j) + ": " + str(end_effector_position[j]))
 
 
 
-testingWithRecordedCoor() # Call this function to test the inverse kinematics
+#testingWithRecordedCoor() # Call this function to test the inverse kinematics
 
 
