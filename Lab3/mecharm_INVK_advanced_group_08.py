@@ -1,7 +1,12 @@
+from time import sleep
 import numpy as np
 from sympy  import symbols, cos, sin, atan2, pi, Matrix, lambdify 
 from scipy.optimize import least_squares
 import csv
+
+
+from pymycobot.mycobot import MyCobot
+from pymycobot import PI_PORT, PI_BAUD
 
 # Declare symbols
 q1,q2,q3,q4,q5,q6 = symbols('q1 q2 q3 q4 q5 q6')
@@ -81,7 +86,7 @@ def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=(-180, 180)
    
 def readCSV():
     # Load Data
-    filename = "../Lab2/data.csv"
+    filename = "pickNplace.csv"
     angles = []
     coord = []
 
@@ -127,4 +132,103 @@ def test_with_recorded_coords():
         for j in range(len(end_effector_position)):
             print("c" + str(j) + ": " + str(end_effector_position[j]))
 
-test_with_recorded_coords()
+def pickNPlace():
+    mycobot = MyCobot(PI_PORT, PI_BAUD)
+    mycobot.power_on()
+    #Get angles
+    angles,coords = readCSV()
+    #back to 0 position
+    sleep(3)
+    mycobot.send_angles([0,0,0,0,0,0],30)
+    print("Start coordinates")
+    sleep(3)
+    mycobot.set_gripper_state(0,30)
+    sleep(3)
+
+   # Using inverse kinematics and then forward kinematics to find the coordinates position at readytopick position
+    x_target = coords[0][0]
+    y_target = coords[0][1]
+    z_target = coords[0][2]
+    rx_d = np.radians(coords[0][3])  # Roll angle (in radians)
+    ry_d = np.radians(coords[0][4])  # Pitch angle (in radians)
+    rz_d = np.radians(coords[0][5])  # Yaw angle (in radians)
+    q_init = angles[0]
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
+    calculated_coords = symbolic_forward_kinematics(joint_angles)
+
+    # Send the gripper to grab the marker
+    end_effector_position = calculated_coords[:3, 3][0:3] + [coords[0][3], coords[0][4], coords[0][5]]
+
+    mycobot.send_coords(end_effector_position, 10)
+    print("ReadytoPick States")
+    sleep(5)
+
+    # View the current coordinate we at
+    print("Coor:")
+    for j in range(len(end_effector_position)):
+        print("c" + str(j) + ": " + str(end_effector_position[j]))
+
+
+    # Using inverse kinematics and then forward kinematics to find the coordinates position at starting position
+    x_target = coords[1][0]
+    y_target = coords[1][1]
+    z_target = coords[1][2]
+    rx_d = np.radians(coords[1][3])  # Roll angle (in radians)
+    ry_d = np.radians(coords[1][4])  # Pitch angle (in radians)
+    rz_d = np.radians(coords[1][5])  # Yaw angle (in radians)
+    q_init = angles[1]
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
+    calculated_coords = symbolic_forward_kinematics(joint_angles)
+
+    # Send the gripper to grab the marker
+    end_effector_position = calculated_coords[:3, 3][0:3] + [coords[1][3], coords[1][4], coords[1][5]]
+
+    mycobot.send_coords(end_effector_position, 10)
+    print("Grapping States")
+    sleep(5)
+    mycobot.set_gripper_state(1,30)
+    sleep(5)
+
+    # View the current coordinate we at
+    print("Coor:")
+    for j in range(len(end_effector_position)):
+        print("c" + str(j) + ": " + str(end_effector_position[j]))
+
+    print("Neutral States")
+
+    # Back to neutral
+    mycobot.send_angles([0,0,0,0,0,0],30)
+
+    # Using inverse kinematics and then forward kinematics to find the coordinates position at ending position
+    
+    x_target = coords[2][0]
+    y_target = coords[2][1]
+    z_target = coords[2][2]
+    rx_d = np.radians(coords[2][3])  # Roll angle (in radians)
+    ry_d = np.radians(coords[2][4])  # Pitch angle (in radians)
+    rz_d = np.radians(coords[2][5])  # Yaw angle (in radians)
+    q_init = angles[2]
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
+    calculated_coords = symbolic_forward_kinematics(joint_angles)
+
+    # Send the gripper to place the marker
+    end_effector_position = calculated_coords[:3, 3][0:3] + [coords[2][3], coords[2][4], coords[2][5]]
+
+    mycobot.send_coords(end_effector_position, 30)
+    print("Placing States")
+    sleep(3)
+    mycobot.set_gripper_state(0,30)
+    sleep(3)
+
+    # View the current coordinate we at
+    print("Coor:")
+    for j in range(len(end_effector_position)):
+        print("c" + str(j) + ": " + str(end_effector_position[j]))
+
+    # Back to neutral
+    print("Neutral States")
+    mycobot.send_angles([0,0,0,0,0,0],30)
+    sleep(5)
+
+#test_with_recorded_coords()
+setPositionFCoordDH()
