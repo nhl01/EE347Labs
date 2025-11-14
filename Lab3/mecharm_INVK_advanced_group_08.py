@@ -40,6 +40,7 @@ for i in range(1, len(D_H_Table)):
 # Define symbolic joint variables for differentiation
 q_sym = symbols('q1:7')
 
+# With forward kinemetics, we're getting the coordinates with given angles values.... return the coordinates of end effector
 def symbolic_forward_kinematics(q_values):
     # Map the joint angles and offsets into the transformation matrix
     subs_dict = {q:offset + angle for q, offset, angle in zip([q1, q2, q3, q4, q5, q6], offsets, q_values)}
@@ -83,7 +84,10 @@ def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=(-180, 180)
    else:
        print("Inverse kinematics did not converge.")
        return None
-   
+
+# Reading the file and return the recorded angles and coordinates. Again, even line of the pickNplace.csv is angles and odd is the coordinates
+# The pickNplace.csv contains coordinates and angles where the starting point of marker and ending point of marker.... there is a helper states/coordinates where
+# the end-effector will first move to so that it wouldn't knock down the marker at starting point.
 def readCSV():
     # Load Data
     filename = "pickNplace.csv"
@@ -112,11 +116,17 @@ def readCSV():
             i+=1
     return angles, coord 
 
+# Reading the recorded angles + coordinates.... feed the those data in to the inverse kinematic to get the computed joint angles and feed them to forward kinematics
+# Purpose: to ensure the computed angles using inverse kinematic will reflect on the exact coordinates recorded.
 def test_with_recorded_coords():
+    # Get angles and coordinates from file
     print("READING CSV")
     angles, coords = readCSV()
+
+    # Perform inverse kinematics
     print("PERFORMING INVERSE KINEMATICS")
     for i in range(len(angles)):
+        # Cut out the x y z and roll pitch yaw from each coordinates list; get the angles too.
         x_target = coords[i][0]
         y_target = coords[i][1]
         z_target = coords[i][2]
@@ -124,20 +134,26 @@ def test_with_recorded_coords():
         ry_d = np.radians(coords[i][4])  # Pitch angle (in radians)
         rz_d = np.radians(coords[i][5])  # Yaw angle (in radians)
         q_init = angles[i]
+        # With inverse kinematic we find the joint angles
         joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
+        # Get the compute coordinates
         calculated_coords = symbolic_forward_kinematics(joint_angles)
         end_effector_position = calculated_coords[:3, 3]
-
+        # Print all coordinates out
         print("Coor:")
         for j in range(len(end_effector_position)):
             print("c" + str(j) + ": " + str(end_effector_position[j]))
 
+# Function that control the robot to pick up a marker in a specific start position and then place it in the specific end position.
 def pickNPlace():
+    # Initial our robot arm
     mycobot = MyCobot(PI_PORT, PI_BAUD)
     mycobot.power_on()
-    #Get angles
+
+    # Get angles
     angles,coords = readCSV()
-    #back to 0 position
+
+    # Set robot to default position with the gripper open
     sleep(3)
     mycobot.send_angles([0,0,0,0,0,0],30)
     print("Start coordinates")
@@ -145,7 +161,7 @@ def pickNPlace():
     mycobot.set_gripper_state(0,30)
     sleep(3)
 
-   # Using inverse kinematics and then forward kinematics to find the coordinates position at readytopick position
+   # Find compute angles with inverse kinematics and then use forward kinematics to find the coordinates position at readytopick position (so we don't knock down the marker)
     x_target = coords[0][0]
     y_target = coords[0][1]
     z_target = coords[0][2]
@@ -153,23 +169,21 @@ def pickNPlace():
     ry_d = np.radians(coords[0][4])  # Pitch angle (in radians)
     rz_d = np.radians(coords[0][5])  # Yaw angle (in radians)
     q_init = angles[0]
-    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
-    calculated_coords = symbolic_forward_kinematics(joint_angles)
-
-    # Send the gripper to grab the marker
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init) # apply inverse kinematic to find computed angles
+    calculated_coords = symbolic_forward_kinematics(joint_angles) # apply forward kinematics to find the computed coordinates with computed angles
+    # Since the coordinates that we got only contains x y z... we then add the "recorded" rx ry rz
     end_effector_position = calculated_coords[:3, 3][0:3] + [coords[0][3], coords[0][4], coords[0][5]]
-
+    # Send coordinates to robot
     mycobot.send_coords(end_effector_position, 10)
     print("ReadytoPick States")
     sleep(5)
-
     # View the current coordinate we at
     print("Coor:")
     for j in range(len(end_effector_position)):
         print("c" + str(j) + ": " + str(end_effector_position[j]))
 
 
-    # Using inverse kinematics and then forward kinematics to find the coordinates position at starting position
+    # Find compute angles with inverse kinematics and then use forward kinematics to find the coordinates position at starting position(where the marker is at)
     x_target = coords[1][0]
     y_target = coords[1][1]
     z_target = coords[1][2]
@@ -177,30 +191,26 @@ def pickNPlace():
     ry_d = np.radians(coords[1][4])  # Pitch angle (in radians)
     rz_d = np.radians(coords[1][5])  # Yaw angle (in radians)
     q_init = angles[1]
-    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
-    calculated_coords = symbolic_forward_kinematics(joint_angles)
-
-    # Send the gripper to grab the marker
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init) # apply inverse kinematic to find computed angles
+    calculated_coords = symbolic_forward_kinematics(joint_angles) # apply forward kinematics to find the computed coordinates with computed angles
+    # Since the coordinates that we got only contains x y z... we then add the "recorded" rx ry rz
     end_effector_position = calculated_coords[:3, 3][0:3] + [coords[1][3], coords[1][4], coords[1][5]]
-
+    # Send coordinates to robot
     mycobot.send_coords(end_effector_position, 10)
     print("Grapping States")
     sleep(5)
-    mycobot.set_gripper_state(1,30)
+    mycobot.set_gripper_state(1,30) # Close gripper to grab the pen
     sleep(5)
-
     # View the current coordinate we at
     print("Coor:")
     for j in range(len(end_effector_position)):
         print("c" + str(j) + ": " + str(end_effector_position[j]))
 
-    print("Neutral States")
-
     # Back to neutral
+    print("Neutral States")
     mycobot.send_angles([0,0,0,0,0,0],30)
 
-    # Using inverse kinematics and then forward kinematics to find the coordinates position at ending position
-    
+    # Find compute angles with inverse kinematics and then use forward kinematics to find the coordinates position at ending position (Spot to drop the marker)
     x_target = coords[2][0]
     y_target = coords[2][1]
     z_target = coords[2][2]
@@ -208,27 +218,26 @@ def pickNPlace():
     ry_d = np.radians(coords[2][4])  # Pitch angle (in radians)
     rz_d = np.radians(coords[2][5])  # Yaw angle (in radians)
     q_init = angles[2]
-    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
-    calculated_coords = symbolic_forward_kinematics(joint_angles)
-
-    # Send the gripper to place the marker
+    joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init) # apply inverse kinematic to find computed angles
+    calculated_coords = symbolic_forward_kinematics(joint_angles) # apply forward kinematics to find the computed coordinates with computed angles
+    # Since the coordinates that we got only contains x y z... we then add the "recorded" rx ry rz
     end_effector_position = calculated_coords[:3, 3][0:3] + [coords[2][3], coords[2][4], coords[2][5]]
-
+    # Send coordinates to robot
     mycobot.send_coords(end_effector_position, 30)
     print("Placing States")
     sleep(3)
-    mycobot.set_gripper_state(0,30)
+    mycobot.set_gripper_state(0,30) # Open Gripper
     sleep(3)
-
     # View the current coordinate we at
     print("Coor:")
     for j in range(len(end_effector_position)):
         print("c" + str(j) + ": " + str(end_effector_position[j]))
 
-    # Back to neutral
+    # Send arm back to neutral coordinates to end
     print("Neutral States")
     mycobot.send_angles([0,0,0,0,0,0],30)
     sleep(5)
 
-#test_with_recorded_coords()
-setPositionFCoordDH()
+# the "pickNplace.csv" contains our recorded angles and coordinates... the even line is angles(line 0, 2, 4) and odd line is coordinates(line 1, 3, 5)
+#test_with_recorded_coords() # Uncomment this line to run test on our inverse kinematics + compare the printed result in terminal with file "pickNplace.csv"
+#pickNPlace() # Uncomment this line to send robot to pick up the marker at the starting point and place is at ending point
