@@ -135,13 +135,21 @@ def test_with_recorded_coords():
         q_init = angles[i]
         # With inverse kinematic we find the joint angles
         joint_angles = ik((x_target, y_target, z_target, rx_d, ry_d, rz_d), q_init)
-        # Get the compute coordinates
+        # Apply forward kinematics with computed angles to check if computed coordinates is an exact match on recorded coordinates
+        # Un comment the couple line below to see if computed coordinates is same exact as recorded one (we keep it comment because the deliverables want us to print angles)
+
         calculated_coords = symbolic_forward_kinematics(joint_angles)
         end_effector_position = calculated_coords[:3, 3]
         # Print all coordinates out
-        print("Coor:")
-        for j in range(len(end_effector_position)):
-            print("c" + str(j) + ": " + str(end_effector_position[j]))
+        # Un comment the couple line below to see if computed coordinates is same exact as recorded one (we keep it comment because the deliverables want us to print angles)
+        #print("Coor:")
+        #for j in range(len(end_effector_position)):
+        #    print("c" + str(j) + ": " + str(end_effector_position[j]))
+                    
+        # Un comment the couple line below to see the computed angles by inverse kinematic
+        print("Angles:")
+        for j in range(len(joint_angles)):
+            print("c" + str(j) + ": " + str(joint_angles[j]))
 
 # Function that control the robot to pick up a marker in a specific start position and then place it in the specific end position.
 def pickNPlace():
@@ -238,5 +246,5 @@ def pickNPlace():
     sleep(5)
 
 # the "pickNplace.csv" contains our recorded angles and coordinates... the even line is angles(line 0, 2, 4) and odd line is coordinates(line 1, 3, 5)
-#test_with_recorded_coords() # Uncomment this line to run test on our inverse kinematics + compare the printed result in terminal with file "pickNplace.csv"
+test_with_recorded_coords() # Uncomment this line to run test on our inverse kinematics + compare the printed result in terminal with file "pickNplace.csv"
 #pickNPlace() # Uncomment this line to send robot to pick up the marker at the starting point and place is at ending point

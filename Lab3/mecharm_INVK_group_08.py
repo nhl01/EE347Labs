@@ -119,17 +119,21 @@ def testingWithRecordedCoor():
 
         # Apply inverse kinematics with given coordinates
         joint_angles = inverse_kinematics(x_target, y_target, z_target, rx_d, ry_d, rz_d, q_init)
-        # Apply forward kinematics with computed angles
-        cal_coor = symbolic_forward_kinematics(joint_angles)
-        end_effector_position = cal_coor[:3, 3]
+        # Apply forward kinematics with computed angles to check if computed coordinates is an exact match on recorded coordinates
+        # Un comment the couple line below to see if computed coordinates is same exact as recorded one (we keep it comment because the deliverables want us to print angles)
+
+        #cal_coor = symbolic_forward_kinematics(joint_angles)
+        #end_effector_position = cal_coor[:3, 3]
 
         # Print out the computed coordinates
-        print("Coor:")
-        for j in range(len(end_effector_position)):
-            print("c" + str(j) + ": " + str(end_effector_position[j]))
+        #print("Coor:")
+        #for j in range(len(end_effector_position)):
+        #    print("c" + str(j) + ": " + str(end_effector_position[j]))
 
+        print("Angles:")
+        for j in range(len(joint_angles)):
+            print("c" + str(j) + ": " + str(joint_angles[j]))
 
-
-#testingWithRecordedCoor() # Call this function to test the inverse kinematics
+testingWithRecordedCoor() # Call this function to test the inverse kinematics
 
 
