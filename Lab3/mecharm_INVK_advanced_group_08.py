@@ -85,12 +85,11 @@ def ik(target_pose, init_pose, max_iter=1000, tolerance=1e-5, bounds=(-180, 180)
        print("Inverse kinematics did not converge.")
        return None
 
-# Reading the file and return the recorded angles and coordinates. Again, even line of the pickNplace.csv is angles and odd is the coordinates
+# Reading the file and return the recorded angles and coordinates. Again, even line of the pickNplace.csv/data.csv is angles and odd is the coordinates
 # The pickNplace.csv contains coordinates and angles where the starting point of marker and ending point of marker.... there is a helper states/coordinates where
 # the end-effector will first move to so that it wouldn't knock down the marker at starting point.
-def readCSV():
+def readCSV(filename):
     # Load Data
-    filename = "pickNplace.csv"
     angles = []
     coord = []
 
@@ -121,7 +120,7 @@ def readCSV():
 def test_with_recorded_coords():
     # Get angles and coordinates from file
     print("READING CSV")
-    angles, coords = readCSV()
+    angles, coords = readCSV("../Lab2/data.csv")
 
     # Perform inverse kinematics
     print("PERFORMING INVERSE KINEMATICS")
@@ -151,7 +150,7 @@ def pickNPlace():
     mycobot.power_on()
 
     # Get angles
-    angles,coords = readCSV()
+    angles,coords = readCSV("pickNplace.csv")
 
     # Set robot to default position with the gripper open
     sleep(3)
