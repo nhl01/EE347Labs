@@ -134,6 +134,6 @@ def testingWithRecordedCoor():
         for j in range(len(joint_angles)):
             print("c" + str(j) + ": " + str(joint_angles[j]))
 
-testingWithRecordedCoor() # Call this function to test the inverse kinematics
+#testingWithRecordedCoor() # Call this function to test the inverse kinematics
 
 
