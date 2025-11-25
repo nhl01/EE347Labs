@@ -18,41 +18,42 @@ def sendRobotToSpecificLocation(angles, coords, readyPick, readyDrop):
     # Initial our robot arm
     mycobot = MyCobot(PI_PORT, PI_BAUD)
     mycobot.power_on()
-    print(readyPick)
 
     # Set robot to default position with the gripper open
     sleep(3)
     mycobot.send_angles([0,0,0,0,0,0],30)
     print("Start coordinates")
-    sleep(1)
+    sleep(2)
     mycobot.set_gripper_state(0,30)
-    sleep(1)
+    sleep(2)
 
     states = 1
-
+    blockPick = 0
+    blockDrop = 0
     for i in range(len(coords)):
         if (states == 1):
-            mycobot.send_coords(getCoordinates(readyPick[0], mycobot.get_angles()), 30)
+            print(getCoordinates(readyPick[blockPick][0], mycobot.get_angles()))
+            mycobot.send_coords(getCoordinates(readyPick[blockPick][0], mycobot.get_angles()), 20)
             print("Go to ready to pick states")
-            sleep(5)
+            sleep(3)
 
         elif (states == 2):
-            mycobot.send_coords(getCoordinates(readyDrop[0], mycobot.get_angles()), 30)
+            mycobot.send_coords(getCoordinates(readyDrop[0], mycobot.get_angles()), 20)
             print("Go to ready to drop states")
-            sleep(5)
+            sleep(3)
 
         end_effector_position = getCoordinates(coords[i], mycobot.get_angles())
         print(end_effector_position)
-        sleep(3)
         mycobot.send_coords(end_effector_position, 10)
         print("Go to pick/drop states")
-        sleep(5)
+        sleep(7)
 
         if (states == 1):
-            mycobot.set_gripper_state(1,20)
+            mycobot.set_gripper_value(70,30,1)
             print("pick up")
             sleep(3)
-            mycobot.send_coords(getCoordinates(readyPick[0], mycobot.get_angles()), 30)
+            mycobot.send_coords(getCoordinates(readyPick[blockPick][0], mycobot.get_angles()), 50)
+            blockPick+=1
             print("Go to ready to pick states")
             sleep(3)
             states = 2
@@ -60,7 +61,7 @@ def sendRobotToSpecificLocation(angles, coords, readyPick, readyDrop):
             mycobot.set_gripper_state(0,20)
             print("Drop")
             sleep(3)
-            mycobot.send_coords(getCoordinates(readyDrop[0], mycobot.get_angles()), 30)
+            mycobot.send_coords(getCoordinates(readyDrop[0], mycobot.get_angles()), 50)
             print("Go to ready to drop states")
             sleep(3)
             states = 1
@@ -90,9 +91,9 @@ def getCoordinates(coords, angles):
 def blockPickNDrop():
     # CSV's first two line will be ready Pick zone... second two line will be ready drop coordinates
     angles,coords = readCSV("block.csv")
-    readyPick = [coords[0],angles[0]]
-    readyDrop = [coords[1],angles[1]]
-    sendRobotToSpecificLocation(angles[2:], coords[2:], readyPick,readyDrop)
+    readyPick = [[coords[0],angles[0]],[coords[1],angles[1]],[coords[2],angles[2]]]
+    readyDrop = [coords[3],angles[3]]
+    sendRobotToSpecificLocation(angles[4:], coords[4:], readyPick,readyDrop)
 
 def test():
     mycobot = MyCobot(PI_PORT, PI_BAUD)
@@ -107,8 +108,8 @@ def test():
     sleep(3)
     
 
-#Read10Position() #Uncomment this to drag teach
+Read10Position() #Uncomment this to drag teach
 
-blockPickNDrop() #Uncomment to perform pick and drop block from one loading zone to another
+#blockPickNDrop() #Uncomment to perform pick and drop block from one loading zone to another
 #test()
 
