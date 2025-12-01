@@ -50,6 +50,7 @@ def readCSV():
 def Read10Position():
     mycobot = MyCobot(PI_PORT, PI_BAUD)
     mycobot.power_on()
+    sleep(2)
     mycobot.release_all_servos()
     # Print the status of the robotic arm for 11 times (we're never ready to read the first output)
     for i in range(12):

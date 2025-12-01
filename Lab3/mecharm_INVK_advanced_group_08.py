@@ -246,5 +246,5 @@ def pickNPlace():
     sleep(5)
 
 # the "pickNplace.csv" contains our recorded angles and coordinates... the even line is angles(line 0, 2, 4) and odd line is coordinates(line 1, 3, 5)
-test_with_recorded_coords() # Uncomment this line to run test on our inverse kinematics + compare the printed result in terminal with file "pickNplace.csv"
-#pickNPlace() # Uncomment this line to send robot to pick up the marker at the starting point and place is at ending point
+# test_with_recorded_coords() # Uncomment this line to run test on our inverse kinematics + compare the printed result in terminal with file "pickNplace.csv"
+# pickNPlace() # Uncomment this line to send robot to pick up the marker at the starting point and place is at ending point
