@@ -14,7 +14,7 @@ from pymycobot.mycobot import MyCobot
 from pymycobot import PI_PORT, PI_BAUD
 
 # perform a pick and drop action with the corresponding coordinates
-def sendRobotToSpecificLocation(angles, coords, readyPick, readyDrop):
+def sendRobotToSpecificLocation(coords, readyPick, readyDrop):
     # Initial our robot arm
     mycobot = MyCobot(PI_PORT, PI_BAUD)
     mycobot.power_on()
@@ -119,7 +119,7 @@ def blockPickNDrop():
     readyDrop = [[coords[3],angles[3]],[coords[4],angles[4]],[coords[5],angles[5]]]
 
     # The rest of the point will be position to pick up and drop... send those along with readyPick and readyDrop
-    sendRobotToSpecificLocation(angles[6:], coords[6:], readyPick,readyDrop)
+    sendRobotToSpecificLocation(coords[6:], readyPick,readyDrop)
 
 # Testing if robot can move from base to desired starting position and to desired placing/picking position
 def test():
